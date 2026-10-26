@@ -1,0 +1,210 @@
+10.03 4:27 PM
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>മദ്റസ ഫീസ് മാനേജർ </title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #f0fdf4; color: #0f172a; padding: 15px; font-size: 20px; }
+        .header { background: #047857; color: #fff; padding: 18px; text-align: center; font-size: 26px; font-weight: bold; border-radius: 12px; margin-bottom: 15px; }
+        .card { background: #fff; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #a7f3d0; }
+        .card-title { font-weight: bold; color: #047857; margin-bottom: 12px; font-size: 22px; border-bottom: 2px solid #a7f3d0; padding-bottom: 6px; }
+        .stats { display: flex; justify-content: space-between; background: #dcfce7; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; font-size: 18px; }
+        label { font-size: 18px; color: #334155; font-weight: bold; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 14px; margin-top: 6px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 19px; outline: none; }
+        .btn { width: 100%; background: #047857; color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 22px; }
+        .filter-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .student-card { background: #fff; border: 2px solid #e2e8f0; padding: 15px; border-radius: 12px; margin-bottom: 12px; }
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 8px; }
+        .badge-pending { background: #fee2e2; color: #dc2626; }
+        .badge-paid { background: #d1fae5; color: #047857; }
+        .badge-advance { background: #e0e7ff; color: #4338ca; }
+        .pay-group { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-pay { background: #059669; color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 17px; }
+        .action-btns { display: flex; gap: 10px; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
+        .btn-wa { background: #25D366; color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 17px; }
+        .btn-del { background: #ef4444; color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; margin-left: auto; font-size: 17px; }
+        .pdf-actions { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .btn-pdf { background: #2563eb; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 48%; font-size: 17px; }
+        .btn-annual { background: #7c3aed; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 48%; font-size: 17px; }
+        @media print { .no-print { display: none !important; } body { background: #fff; font-size: 18pt; } }
+    </style>
+</head>
+<body>
+    <div class="header no-print">മദ്റസ ഫീസ് മാനേജർ </div>
+    <div class="stats no-print">
+        <div>ആകെ: <span id="totalStudents">0</span></div>
+        <div>ലഭിച്ചത്: <span id="totalCollected" style="color:#047857;">₹0</span></div>
+        <div>ബാക്കി: <span id="totalPending" style="color:#dc2626;">₹0</span></div>
+    </div>
+    <div class="card no-print">
+        <div class="card-title">കുട്ടിയെ ചേർക്കുക ✍</div>
+        <form id="studentForm">
+            <label>പേര്</label><input type="text" id="name" required placeholder="പേര്">
+            <label>ക്ലാസ്സ്</label>
+            <select id="class" required>
+                <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option><option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option><option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option><option value="Class 10">Class 10</option>
+            </select>
+            <label>മാസവരി (₹)</label><input type="number" id="monthlyFee" required placeholder="100">
+            <label>ഫോൺ നമ്പർ</label><input type="tel" id="phone" required placeholder="10 അക്ക നമ്പർ">
+            <button type="submit" class="btn">ചേർക്കുക ➕</button>
+        </form>
+    </div>
+    <div class="card">
+        <div class="filter-box no-print">
+            <select id="filterClass" onchange="render()"><option value="ALL">എല്ലാ ക്ലാസ്സും</option><option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option><option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option><option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option><option value="Class 10">Class 10</option></select>
+            <select id="filterMonth" onchange="render()"><option value="ജനുവരി">ജനുവരി</option><option value="ഫെബ്രുവരി">ഫെബ്രുവരി</option><option value="മാർച്ച്">മാർച്ച്</option><option value="ഏപ്രിൽ">ഏപ്രിൽ</option><option value="മേയ്">മേയ്</option><option value="ജൂൺ">ജൂൺ</option><option value="ജൂലൈ">ജൂലൈ</option><option value="ഓഗസ്റ്റ്">ഓഗസ്റ്റ്</option><option value="സെപ്റ്റംബർ">സെപ്റ്റംബർ</option><option value="ഒക്ടോബർ">ഒക്ടോബർ</option><option value="നവംബർ">നവംബർ</option><option value="ഡിസംബർ">ഡിസംബർ</option></select>
+        </div>
+        <div class="pdf-actions no-print">
+            <button onclick="printReport('MONTH')" class="btn-pdf">മാസ റിപ്പോർട്ട് PDF </button>
+            <button onclick="printReport('ANNUAL')" class="btn-annual">വാർഷിക റിപ്പോർട്ട് PDF </button>
+        </div>
+        <div id="printHeader" style="display:none; text-align:center; margin-bottom:15px;">
+            <h2>മദ്റസ ഫീസ് റിപ്പോർട്ട്</h2><p id="reportSubTitle" style="font-weight:bold;"></p>
+        </div>
+        <div id="studentList"></div>
+    </div>
+
+    <script>
+        let students = JSON.parse(localStorage.getItem('madrasa_final_clean')) || [];
+        const monthNames = ["ജനുവരി", "ഫെബ്രുവരി", "മാർച്ച്", "ഏപ്രിൽ", "മേയ്", "ജൂൺ", "ജൂലൈ", "ഓഗസ്റ്റ്", "സെപ്റ്റംബർ", "ഒക്ടോബർ", "നവംബർ", "ഡിസംബർ"];
+        document.getElementById('filterMonth').value = monthNames[new Date().getMonth()];
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ml-IN';
+                utterance.rate = 0.85; 
+                utterance.pitch = 0.8; 
+
+                let voices = window.speechSynthesis.getVoices();
+                let maleVoice = voices.find(voice => 
+                    voice.lang.includes('ml') && 
+                    (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man') || voice.name.toLowerCase().includes('valluvar') || voice.name.toLowerCase().includes('mohan'))
+                );
+
+                if (maleVoice) {
+                    utterance.voice = maleVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updateStats(filtered) {
+            let col = 0, pen = 0;
+            filtered.forEach(s => { col += s.paid; let b = s.fee - s.paid; if(b > 0) pen += b; });
+            document.getElementById('totalStudents').innerText = filtered.length;
+            document.getElementById('totalCollected').innerText = '₹' + col;
+            document.getElementById('totalPending').innerText = '₹' + pen;
+        }
+
+        function render() {
+            const list = document.getElementById('studentList');
+            const cls = document.getElementById('filterClass').value;
+            list.innerHTML = '';
+            let filtered = students.filter(s => cls === 'ALL' || s.class === cls);
+
+            if (!filtered.length) {
+                list.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:15px;">വിവരങ്ങളൊന്നുമില്ല ️</div>';
+                updateStats(filtered); return;
+            }
+
+            filtered.forEach(s => {
+                let idx = students.indexOf(s);
+                let bal = s.fee - s.paid;
+                let adv = s.paid > s.fee ? (s.paid - s.fee) : 0;
+                let badge = adv > 0 ? `<span class="badge badge-advance">പൂർണ്ണം ✔️ (അഡ്വാൻസ്: ₹${adv})</span>` : (bal <= 0 ? `<span class="badge badge-paid">പൂർണ്ണം ✔️</span>` : `<span class="badge badge-pending">ബാക്കി: ₹${bal}</span>`);
+
+                list.innerHTML += `<div class="student-card">
+                    <div style="font-weight:bold; font-size:20px;">${s.name}</div>
+                    <div style="font-size:16px; color:#475569;"><b>${s.class}</b> |  ${s.phone}</div>
+                    <div style="font-size:16px; color:#475569;">ഫീസ്: ₹${s.fee} | നൽകിയത്: ₹${s.paid}</div>
+                    ${badge}
+                    <div class="pay-group no-print">
+                        <input type="number" id="pay-${idx}" placeholder="തുക">
+                        <button onclick="addPay(${idx})" class="btn-pay">അടക്കുക</button>
+                    </div>
+                    <div class="action-btns no-print">
+                        <button onclick="sendWA(${idx})" class="btn-wa">WhatsApp </button>
+                        <button onclick="delStudent(${idx})" class="btn-del">ഡിലീറ്റ് ️</button>
+                    </div>
+                </div>`;
+            });
+            localStorage.setItem('madrasa_final_clean', JSON.stringify(students));
+            updateStats(filtered);
+        }
+
+        document.getElementById('studentForm').addEventListener('submit', e => {
+            e.preventDefault();
+            students.push({
+                name: document.getElementById('name').value,
+                class: document.getElementById('class').value,
+                fee: parseFloat(document.getElementById('monthlyFee').value),
+                paid: 0,
+                phone: document.getElementById('phone').value
+            });
+            document.getElementById('studentForm').reset();
+            render();
+        });
+
+        function addPay(i) {
+            let v = parseFloat(document.getElementById('pay-' + i).value);
+            if (v > 0) { 
+                students[i].paid += v; 
+                let studentName = students[i].name;
+                let currentMonth = document.getElementById('filterMonth').value;
+                
+                render(); 
+                
+                let voiceMsg = `${studentName}, ${currentMonth} മാസത്തെ ഫീസ് ${v} രൂപ അടച്ചു.`;
+                speakText(voiceMsg);
+            }
+        }
+
+        function sendWA(i) {
+            let s = students[i];
+            let m = document.getElementById('filterMonth').value;
+            let msg = "";
+            if (s.paid > s.fee) {
+                let adv = s.paid - s.fee;
+                let mths = Math.floor(adv / s.fee);
+                let txt = mths > 0 ? `കൂടാതെ അടുത്ത ${mths} മാസത്തെ ഫീസിനായി ₹${adv} അഡ്വാൻസ് ആയും ലഭിച്ചിട്ടുണ്ട്.` : `കൂടാതെ ₹${adv} അഡ്വാൻസ് ആയും ലഭിച്ചിട്ടുണ്ട്.`;
+                msg = `പ്രിയ രക്ഷിതാവേ, ${s.name}-ന്റെ ${m} മാസത്തെ മദ്റസ ഫീസ് ${s.fee} രൂപ കൃത്യമായി ലഭിച്ചിട്ടുണ്ട്. ${txt} شكرا جزاكم الله خيرا !`;
+            } else if (s.paid === s.fee) {
+                msg = `പ്രിയ രക്ഷിതാവേ, ${s.name}-ന്റെ ${m} മാസത്തെ മദ്റസ ഫീസ് ${s.fee} രൂപ കൃത്യമായി ലഭിച്ചിട്ടുണ്ട്. شكرا جزاكم الله خيرا !`;
+            } else {
+                msg = `പ്രിയ രക്ഷിതാവേ, ${s.name}-ന്റെ ${m} മാസത്തെ മദ്റസ ഫീസിൽ ₹${s.paid} ലഭിച്ചിട്ടുണ്ട്. ബാക്കി ₹${s.fee - s.paid} കൂടി അടച്ചു തീർക്കുമല്ലോ. شكرا جزاكم الله خيرا !`;
+            }
+            let ph = s.phone.replace(/\D/g, '');
+            if (ph.length === 10) ph = '91' + ph;
+            window.open(`https://api.whatsapp.com/send?phone=${ph}&text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function delStudent(i) {
+            if (confirm("നീക്കം ചെയ്യണോ?")) { students.splice(i, 1); render(); }
+        }
+
+        function printReport(type) {
+            let cls = document.getElementById('filterClass').value;
+            let m = document.getElementById('filterMonth').value;
+            document.getElementById('reportSubTitle').innerText = type === 'MONTH' ? `മാസ റിപ്പോർട്ട് - ${m} (${cls})` : `വാർഷിക കണക്ക് റിപ്പോർട്ട് (${cls})`;
+            document.getElementById('printHeader').style.display = 'block';
+            window.print();
+            document.getElementById('printHeader').style.display = 'none';
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = function() {
+                window.speechSynthesis.getVoices();
+            };
+        }
+
+        render();
+    </script>
+</body>
+</html>
+
